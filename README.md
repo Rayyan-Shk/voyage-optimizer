@@ -89,16 +89,6 @@ The fastest way to get started is using Docker. This starts the entire applicati
    docker-compose --env-file .env up
    ```
 
-   Or use the provided startup scripts:
-
-   ```bash
-   # Linux/macOS
-   ./docker-start.sh
-
-   # Windows
-   docker-start.bat
-   ```
-
 4. **Access the API**
    - API Documentation: http://localhost:8000/docs
    - Health Check: http://localhost:8000/health
