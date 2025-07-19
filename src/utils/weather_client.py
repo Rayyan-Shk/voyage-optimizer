@@ -1,6 +1,4 @@
 import asyncio
-import hashlib
-import json
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 
@@ -8,8 +6,7 @@ import httpx
 import structlog
 
 from src.core.config import settings
-from src.core.exceptions import WeatherDataError
-from src.core.models import Coordinates, WeatherCondition
+from src.core.models import Coordinates
 
 logger = structlog.get_logger()
 
@@ -290,7 +287,6 @@ class WeatherClient:
     def _calculate_weather_severity(self, weather_data: Dict) -> float:
         """Calculate weather severity score (0-1)."""
         try:
-            main = weather_data.get("main", {})
             wind = weather_data.get("wind", {})
             weather = weather_data.get("weather", [{}])[0]
 
