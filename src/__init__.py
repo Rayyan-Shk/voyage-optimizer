@@ -1,1 +1,1 @@
-# Ship Planning System - Core Package 
+# Ship Planning System - Core Package
