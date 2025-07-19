@@ -175,102 +175,34 @@ For local development without Docker:
 
 ## 📖 API Documentation
 
-### Core Endpoints
+For complete API documentation with all endpoints, parameters, examples, and usage instructions, see:
 
-#### 🚢 Voyage Planning
+**📋 [Complete API Documentation](API_DOCUMENTATION.md)**
 
-```http
-POST /api/v1/plan-voyage
-```
+### Quick Links
 
-Plan an optimal voyage with AI-powered route optimization.
+- **🚢 Voyage Planning**: Plan optimal routes with AI optimization
+- **📊 Voyage History**: Access historical voyage data and analytics
+- **🔧 Maintenance Alerts**: Get predictive maintenance recommendations
+- **📝 Feedback System**: Submit voyage feedback for continuous learning
+- **🏥 Health & Monitoring**: System health checks and metrics
 
-**Request Body:**
+### Interactive Documentation
 
-```json
-{
-  "ship_id": "uuid",
-  "origin": { "latitude": 40.7128, "longitude": -74.006 },
-  "destination": { "latitude": 51.5074, "longitude": -0.1278 },
-  "departure_time": "2024-01-15T10:00:00Z",
-  "cargo_weight": 25000,
-  "optimization_preferences": {
-    "time": 0.4,
-    "fuel": 0.4,
-    "safety": 0.2
-  }
-}
-```
+- **Swagger UI**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **ReDoc**: [http://localhost:8000/redoc](http://localhost:8000/redoc)
 
-**Response:**
+### Quick Test
 
-```json
-{
-  "voyage_id": "uuid",
-  "ship_id": "uuid",
-  "route": {
-    "waypoints": [...],
-    "total_distance": 3456.7,
-    "estimated_duration": 144.5,
-    "confidence_score": 0.92
-  },
-  "fuel_prediction": {
-    "estimated_consumption": 850.5,
-    "confidence_interval": {"lower": 800, "upper": 900},
-    "efficiency_score": 0.85
-  },
-  "maintenance_recommendations": [...],
-  "alternative_plans": [...]
-}
-```
+```bash
+# Test the API is running
+curl -X GET "http://localhost:8000/health"
 
-#### 📊 Voyage History
-
-```http
-GET /api/v1/plan-history?ship_id=uuid&limit=50
-```
-
-Get historical voyage plans with performance metrics.
-
-#### 📝 Feedback Submission
-
-```http
-POST /api/v1/feedback
-```
-
-Submit voyage feedback for continuous learning.
-
-#### 🔧 Maintenance Alerts
-
-```http
-GET /api/v1/maintenance-alerts?ship_id=uuid
-```
-
-Get predictive maintenance alerts for a ship.
-
-### Example Usage
-
-```python
-import httpx
-import asyncio
-
-async def plan_voyage():
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            "http://localhost:8000/api/v1/plan-voyage",
-            json={
-                "ship_id": "12345678-1234-5678-9012-123456789012",
-                "origin": {"latitude": 40.7128, "longitude": -74.0060},
-                "destination": {"latitude": 51.5074, "longitude": -0.1278},
-                "departure_time": "2024-01-15T10:00:00Z",
-                "cargo_weight": 25000
-            }
-        )
-        return response.json()
-
-# Run the example
-voyage_plan = asyncio.run(plan_voyage())
-print(f"Estimated fuel consumption: {voyage_plan['fuel_prediction']['estimated_consumption']} tons")
+# Plan a voyage (requires demo token in DEBUG mode)
+curl -X POST "http://localhost:8000/api/v1/plan-voyage" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer demo_token" \
+  -d '{"ship_id": "12345678-1234-5678-9012-123456789012", "origin": {"latitude": 40.7128, "longitude": -74.0060}, "destination": {"latitude": 51.5074, "longitude": -0.1278}, "departure_time": "2025-01-15T10:00:00Z", "cargo_weight": 25000}'
 ```
 
 ## 🧪 AI Models
@@ -466,14 +398,6 @@ mypy src/
 pytest
 ```
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
 ### Development Guidelines
 
 - Follow PEP 8 style guidelines
@@ -482,9 +406,6 @@ pytest
 - Update documentation for new features
 - Ensure all tests pass before submitting
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
@@ -494,14 +415,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Redis**: For high-performance caching
 - **OpenWeatherMap**: For weather data integration
 
-## 📞 Support
 
-For questions, issues, or contributions:
-
-- 📧 Email: dj@skycladventures.com
-- 🐛 Issues: [GitHub Issues](https://github.com/your-org/ship-planning-system/issues)
-- 📖 Documentation: [API Docs](http://localhost:8000/docs)
-
----
-
-Built with ❤️ for maritime efficiency optimization.
