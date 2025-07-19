@@ -2,14 +2,13 @@ import heapq
 import math
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 import numpy as np
-import pandas as pd
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.preprocessing import StandardScaler
 
-from src.core.exceptions import InsufficientDataError, RouteOptimizationError
+from src.core.exceptions import RouteOptimizationError
 from src.core.models import Coordinates, RouteOptimization, Waypoint, WeatherCondition
 
 
