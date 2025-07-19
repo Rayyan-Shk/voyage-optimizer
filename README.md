@@ -63,20 +63,67 @@ An advanced AI-powered backend system for maritime route optimization, fuel pred
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### 🐳 Docker Setup (Recommended)
+
+The fastest way to get started is using Docker. This starts the entire application with one command:
+
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/Rayyan-Shk/voyage-optimizer
+   cd voyage-optimizer
+   ```
+
+2. **Configure environment**
+
+   ```bash
+   cp env.example .env
+   # Edit .env with your API credentials:
+   # - WEATHER_API_KEY: Get from https://openweathermap.org/api
+   # - SECRET_KEY: Change to a secure random string
+   ```
+
+3. **Start the application**
+
+   ```bash
+   docker-compose --env-file .env up
+   ```
+
+   Or use the provided startup scripts:
+
+   ```bash
+   # Linux/macOS
+   ./docker-start.sh
+
+   # Windows
+   docker-start.bat
+   ```
+
+4. **Access the API**
+   - API Documentation: http://localhost:8000/docs
+   - Health Check: http://localhost:8000/health
+   - Metrics: http://localhost:8000/metrics
+
+---
+
+### 🔧 Local Development Setup
+
+For local development without Docker:
+
+#### Prerequisites
 
 - Python 3.11+
 - PostgreSQL 15+
 - Redis 7+
 - OpenWeatherMap API key (for weather data)
 
-### Installation
+#### Installation
 
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/your-org/ship-planning-system.git
-   cd ship-planning-system
+   git clone https://github.com/Rayyan-Shk/voyage-optimizer
+   cd voyage-optimizer
    ```
 
 2. **Set up virtual environment**
@@ -105,17 +152,23 @@ An advanced AI-powered backend system for maritime route optimization, fuel pred
    # Start PostgreSQL and Redis (adjust for your system)
    sudo systemctl start postgresql redis
 
-   # Or using Docker
+   # Or using Docker services only
    docker-compose up -d postgres redis
    ```
 
-6. **Run the application**
+6. **Initialize database**
+
+   ```bash
+   python init_db.py
+   ```
+
+7. **Run the application**
 
    ```bash
    python main.py
    ```
 
-7. **Access the API**
+8. **Access the API**
    - API Documentation: http://localhost:8000/docs
    - Health Check: http://localhost:8000/health
    - Metrics: http://localhost:8000/metrics
