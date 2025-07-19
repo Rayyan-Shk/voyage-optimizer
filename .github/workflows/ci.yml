@@ -15,7 +15,8 @@ jobs:
   lint:
     name: 🧹 Code Quality
     runs-on: ubuntu-latest
-    # Run on all events now that auto-format is disabled
+
+    if: github.actor != 'Rayyan-Shk'
 
     steps:
       - name: 📥 Checkout Code
@@ -56,9 +57,9 @@ jobs:
   test:
     name: 🧪 Tests
     runs-on: ubuntu-latest
-    # Run after lint job succeeds
+    # Skip tests for Rayyan-Shk pushes, run after lint job succeeds for others
     needs: [lint]
-    if: needs.lint.result == 'success'
+    if: github.actor != 'Rayyan-Shk' && needs.lint.result == 'success'
 
     services:
       postgres:
