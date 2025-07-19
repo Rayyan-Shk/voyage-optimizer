@@ -138,9 +138,9 @@ async def plan_voyage(
             {
                 "recent_operating_hours": route_optimization.estimated_duration,
                 "average_speed": route_data["average_speed"],
-                "weather_severity_avg": weather_data.get("weather_severity", 0.5)
-                if weather_data
-                else 0.5,
+                "weather_severity_avg": (
+                    weather_data.get("weather_severity", 0.5) if weather_data else 0.5
+                ),
             }
         )
 

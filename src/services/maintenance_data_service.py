@@ -113,9 +113,9 @@ class MaintenanceDataService:
                     "event_type": event.maintenance_type,
                     "component": event.component,
                     "cost": float(event.cost) if event.cost else 0.0,
-                    "urgency": float(event.urgency_score)
-                    if event.urgency_score
-                    else 0.5,
+                    "urgency": (
+                        float(event.urgency_score) if event.urgency_score else 0.5
+                    ),
                 }
                 maintenance_history.append(event_dict)
 

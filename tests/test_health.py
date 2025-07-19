@@ -2,6 +2,7 @@
 Basic health check tests for the Ship Planning System.
 These tests ensure the CI workflow works correctly.
 """
+
 import os
 from unittest.mock import MagicMock, patch
 
