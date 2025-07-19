@@ -1,6 +1,4 @@
-import math
-from datetime import datetime
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional
 
 import joblib
 import numpy as np
@@ -10,13 +8,14 @@ from sklearn.metrics import mean_absolute_error, r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import PolynomialFeatures, StandardScaler
 
-from src.core.exceptions import FuelPredictionError, InsufficientDataError
-from src.core.models import Coordinates, FuelPrediction, WeatherCondition
+from src.core.exceptions import FuelPredictionError
+from src.core.models import FuelPrediction
 
 
 class FuelPredictor:
     """
-    Advanced fuel consumption prediction using gradient boosting with feature engineering.
+    Advanced fuel consumption prediction using gradient boosting with
+    feature engineering.
     Incorporates weather conditions, ship specifications, and route characteristics.
     """
 
@@ -36,7 +35,8 @@ class FuelPredictor:
         self._initialize_model()
 
     def _initialize_model(self):
-        """Initialize the gradient boosting model with optimal hyperparameters."""
+        """Initialize the gradient boosting model with optimal
+        hyperparameters."""
         from src.services.model_config_service import model_config
 
         gb_config = model_config.get_gradient_boosting_config()
@@ -316,9 +316,6 @@ class FuelPredictor:
 
     def _calculate_contributing_factors(self, features: Dict) -> Dict[str, float]:
         """Calculate contribution of different factors to fuel consumption."""
-        # Simplified factor analysis
-        total_impact = 100.0
-
         # Calculate relative impacts (simplified)
         factors = {
             "distance": min(40, features["distance"] / 100),
