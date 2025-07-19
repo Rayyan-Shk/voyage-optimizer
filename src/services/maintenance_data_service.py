@@ -1,12 +1,12 @@
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from datetime import datetime
+from typing import Any, Dict, List
 from uuid import UUID
 
 import structlog
-from sqlalchemy import and_, desc
+from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
-from src.core.exceptions import DatabaseError, ValidationError
+from src.core.exceptions import DatabaseError
 from src.data.schemas import MaintenanceEvent, Ship
 from src.services.data_validation_service import data_validator
 
