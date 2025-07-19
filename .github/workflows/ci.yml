@@ -12,13 +12,68 @@ env:
   REDIS_VERSION: "7"
 
 jobs:
-  lint:
-    name: 🧹 Code Quality
+  auto-format:
+    name: 🎨 Auto-Format Code
     runs-on: ubuntu-latest
+    # Only run on push events, not PRs
+    if: github.event_name == 'push'
 
     steps:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: 🔧 Install Formatters
+        run: |
+          python -m pip install --upgrade pip
+          pip install black isort
+
+      - name: 🎨 Format Code with Black
+        run: black src/ tests/ main.py init_db.py
+
+      - name: 📋 Sort Imports with isort
+        run: isort src/ tests/ main.py init_db.py
+
+      - name: 📝 Check for Changes
+        id: verify-changed-files
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Files were formatted"
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "No formatting changes needed"
+          fi
+
+      - name: 🚀 Commit and Push Changes
+        if: steps.verify-changed-files.outputs.changed == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A
+          git commit -m "style: auto-format code with Black and isort [skip ci]"
+          git push
+
+  lint:
+    name: 🧹 Code Quality
+    runs-on: ubuntu-latest
+    # Run after auto-format job completes (for push) or immediately (for PRs)
+    needs: [auto-format]
+    if: always() && (needs.auto-format.result == 'success' || needs.auto-format.result == 'skipped')
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+        with:
+          # Fetch the latest commit (including auto-format changes)
+          ref: ${{ github.ref }}
 
       - name: 🐍 Set up Python
         uses: actions/setup-python@v4
@@ -41,10 +96,10 @@ jobs:
           pip install -r requirements.txt
 
       - name: 🎨 Format Check (Black)
-        run: black --check --diff src/
+        run: black --check --diff src/ tests/ main.py init_db.py
 
       - name: 📋 Import Sort Check (isort)
-        run: isort --check-only --diff src/
+        run: isort --check-only --diff src/ tests/ main.py init_db.py
 
       - name: 🔍 Lint Check (Flake8)
         run: flake8 src/ --max-line-length=88 --extend-ignore=E203,W503
@@ -55,6 +110,9 @@ jobs:
   test:
     name: 🧪 Tests
     runs-on: ubuntu-latest
+    # Run after lint job
+    needs: [lint]
+    if: always()
 
     services:
       postgres:
