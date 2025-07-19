@@ -1,16 +1,16 @@
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List
 
 import joblib
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import GradientBoostingRegressor, RandomForestClassifier
-from sklearn.metrics import classification_report, mean_absolute_error
+from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
-from src.core.exceptions import InsufficientDataError, MaintenanceForecastError
+from src.core.exceptions import MaintenanceForecastError
 from src.core.models import (
     MaintenanceForecasting,
     MaintenanceRecommendation,
@@ -191,7 +191,8 @@ class MaintenanceForecaster:
         usage_data: Dict,
         historical_maintenance: List[Dict],
     ) -> Dict:
-        """Extract features for maintenance prediction using centralized feature engineering."""
+        """Extract features for maintenance prediction using centralized
+        feature engineering."""
         from src.services.feature_engineering_service import feature_engineer
 
         return feature_engineer.extract_maintenance_features(
@@ -477,7 +478,8 @@ class MaintenanceForecaster:
         if not reasons:
             reasons.append("Routine maintenance schedule")
 
-        return f"{component_category.replace('_', ' ').title()} maintenance recommended due to: {', '.join(reasons)}"
+        component_name = component_category.replace('_', ' ').title()
+        return f"{component_name} maintenance recommended due to: {', '.join(reasons)}"
 
     def _calculate_confidence_score(
         self, features: Dict, recommendations: List[MaintenanceRecommendation]
