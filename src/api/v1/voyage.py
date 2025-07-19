@@ -1,4 +1,3 @@
-
 from datetime import datetime, timedelta
 from typing import List, Optional
 from uuid import UUID, uuid4
@@ -15,7 +14,6 @@ from src.api.dependencies import (
 from src.core.exceptions import FuelPredictionError, RouteOptimizationError
 from src.core.models import (
     AlternativePlan,
-
     Coordinates,
     Route,
     VoyageHistory,
@@ -171,8 +169,7 @@ async def plan_voyage(
         )  # Assume $0.5 per liter
         if maintenance_forecast.recommendations:
             total_estimated_cost += sum(
-                rec.estimated_cost
-                for rec in maintenance_forecast.recommendations
+                rec.estimated_cost for rec in maintenance_forecast.recommendations
             )
 
         # Calculate overall confidence score
