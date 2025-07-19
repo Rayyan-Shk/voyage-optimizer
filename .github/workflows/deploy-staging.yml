@@ -1,0 +1,249 @@
+name: 🚀 Deploy to Staging
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Deployment environment"
+        required: true
+        default: "staging"
+        type: choice
+        options:
+          - staging
+          - staging-local
+          - staging-cloud
+      deploy_type:
+        description: "Deployment type"
+        required: true
+        default: "docker-compose"
+        type: choice
+        options:
+          - docker-compose
+          - kubernetes
+          - docker-swarm
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  prepare:
+    name: 🔧 Prepare Deployment
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.setup.outputs.environment }}
+      deploy_type: ${{ steps.setup.outputs.deploy_type }}
+      image_tag: ${{ steps.setup.outputs.image_tag }}
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Deployment Variables
+        id: setup
+        run: |
+          # Set environment
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+            echo "deploy_type=${{ github.event.inputs.deploy_type }}" >> $GITHUB_OUTPUT
+          else
+            echo "environment=staging" >> $GITHUB_OUTPUT
+            echo "deploy_type=docker-compose" >> $GITHUB_OUTPUT
+          fi
+
+          # Set image tag
+          echo "image_tag=${GITHUB_SHA:0:7}" >> $GITHUB_OUTPUT
+
+          echo "🎯 Deployment Configuration:"
+          echo "  Environment: $(echo ${{ github.event.inputs.environment || 'staging' }})"
+          echo "  Deploy Type: $(echo ${{ github.event.inputs.deploy_type || 'docker-compose' }})"
+          echo "  Image Tag: ${GITHUB_SHA:0:7}"
+
+  deploy-local:
+    name: 🏠 Deploy to Local Staging
+    runs-on: ubuntu-latest
+    needs: prepare
+    if: needs.prepare.outputs.environment == 'staging-local' || needs.prepare.outputs.environment == 'staging'
+    environment:
+      name: ${{ needs.prepare.outputs.environment }}
+      url: http://localhost:8000
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🔑 Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📝 Create Staging Environment File
+        run: |
+          cat > .env.staging << EOF
+          # Staging Environment Configuration
+          DATABASE_URL=postgresql://ship_user:ship_password@postgres:5432/ship_planning_staging
+          REDIS_URL=redis://redis:6379/0
+          WEATHER_API_KEY=${{ secrets.WEATHER_API_KEY }}
+          SECRET_KEY=${{ secrets.SECRET_KEY }}
+
+          # Staging-specific settings
+          DEBUG=true
+          ENVIRONMENT=staging
+          LOG_LEVEL=DEBUG
+
+          # Performance settings for staging
+          DATABASE_POOL_SIZE=10
+          MAX_CONCURRENT_REQUESTS=50
+          CACHE_DEFAULT_TTL=900
+
+          # ML Model settings
+          MODEL_RETRAIN_THRESHOLD=0.80
+          ENABLE_CONTINUOUS_LEARNING=true
+          EOF
+
+      - name: 🐳 Deploy with Docker Compose
+        if: needs.prepare.outputs.deploy_type == 'docker-compose'
+        run: |
+          # Pull latest images
+          docker-compose -f docker-compose.yml -f docker-compose.staging.yml pull
+
+          # Deploy with staging configuration
+          docker-compose -f docker-compose.yml -f docker-compose.staging.yml up -d
+
+          # Wait for services to be ready
+          timeout 60 bash -c 'until docker-compose -f docker-compose.yml -f docker-compose.staging.yml ps | grep -q "Up"; do sleep 2; done'
+
+      - name: 🧪 Health Check
+        run: |
+          # Wait for application to be ready
+          timeout 120 bash -c 'until curl -f http://localhost:8000/health; do sleep 5; done'
+
+          # Run health checks
+          curl -f http://localhost:8000/health/detailed
+
+          # Test core endpoints
+          curl -f -H "Authorization: Bearer demo_token" http://localhost:8000/api/v1/plan-history
+
+      - name: 📊 Deployment Summary
+        run: |
+          echo "🎉 Staging deployment successful!"
+          echo "📊 Service Status:"
+          docker-compose -f docker-compose.yml -f docker-compose.staging.yml ps
+          echo ""
+          echo "🌐 Access URLs:"
+          echo "  • API Documentation: http://localhost:8000/docs"
+          echo "  • Health Check: http://localhost:8000/health"
+          echo "  • Metrics: http://localhost:8000/metrics"
+
+  deploy-cloud:
+    name: ☁️ Deploy to Cloud Staging
+    runs-on: ubuntu-latest
+    needs: prepare
+    if: needs.prepare.outputs.environment == 'staging-cloud'
+    environment:
+      name: staging-cloud
+      url: ${{ steps.deploy.outputs.url }}
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: ☁️ Deploy to Cloud Provider
+        id: deploy
+        run: |
+          echo "🚀 Deploying to cloud staging environment..."
+
+          # This is a placeholder for cloud deployment
+          # Replace with your cloud provider's deployment steps
+
+          # Example for AWS ECS:
+          # - Configure AWS credentials
+          # - Update ECS service with new image
+          # - Wait for deployment to complete
+
+          # Example for Google Cloud Run:
+          # - Authenticate with GCP
+          # - Deploy to Cloud Run
+          # - Get service URL
+
+          # Example for Azure Container Instances:
+          # - Login to Azure
+          # - Update container group
+          # - Get public IP
+
+          # For now, simulate cloud deployment
+          echo "url=https://staging.your-domain.com" >> $GITHUB_OUTPUT
+          echo "✅ Cloud deployment completed (simulated)"
+
+      - name: 🧪 Cloud Health Check
+        run: |
+          # Replace with actual cloud URL
+          STAGING_URL="https://staging.your-domain.com"
+
+          echo "🔍 Checking cloud deployment health..."
+          # curl -f $STAGING_URL/health
+          # curl -f $STAGING_URL/health/detailed
+
+          echo "✅ Cloud health check completed (simulated)"
+
+  rollback:
+    name: 🔄 Rollback on Failure
+    runs-on: ubuntu-latest
+    needs: [prepare, deploy-local, deploy-cloud]
+    if: failure()
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🔄 Rollback Deployment
+        run: |
+          echo "🚨 Deployment failed, initiating rollback..."
+
+          # For local deployment
+          if [ "${{ needs.prepare.outputs.environment }}" = "staging-local" ] || [ "${{ needs.prepare.outputs.environment }}" = "staging" ]; then
+            echo "🏠 Rolling back local deployment..."
+            docker-compose -f docker-compose.yml -f docker-compose.staging.yml down
+            
+            # Restore previous version (if available)
+            # docker-compose -f docker-compose.yml -f docker-compose.staging.yml up -d
+          fi
+
+          # For cloud deployment
+          if [ "${{ needs.prepare.outputs.environment }}" = "staging-cloud" ]; then
+            echo "☁️ Rolling back cloud deployment..."
+            # Add cloud-specific rollback commands here
+          fi
+
+          echo "🔄 Rollback completed"
+
+      - name: 📧 Notify Team
+        run: |
+          echo "📧 Notifying team about deployment failure and rollback..."
+          # Add notification logic here (Slack, email, etc.)
+
+  cleanup:
+    name: 🧹 Cleanup
+    runs-on: ubuntu-latest
+    needs: [prepare, deploy-local, deploy-cloud]
+    if: always()
+
+    steps:
+      - name: 🧹 Cleanup Resources
+        run: |
+          echo "🧹 Cleaning up deployment resources..."
+
+          # Remove temporary files
+          rm -f .env.staging
+
+          # Clean up Docker resources (if needed)
+          # docker system prune -f
+
+          echo "✅ Cleanup completed"
