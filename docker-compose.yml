@@ -1,0 +1,129 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: ship-planning-db
+    environment:
+      POSTGRES_DB: ship_planning
+      POSTGRES_USER: ship_user
+      POSTGRES_PASSWORD: ship_password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - ship-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ship_user -d ship_planning"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: ship-planning-cache
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - ship-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # FastAPI Application
+  app:
+    build: .
+    container_name: ship-planning-app
+    environment:
+      # Database Configuration
+      DATABASE_URL: postgresql://ship_user:ship_password@postgres:5432/ship_planning
+      DATABASE_POOL_SIZE: 20
+      DATABASE_MAX_OVERFLOW: 30
+
+      # Redis Configuration
+      REDIS_URL: redis://redis:6379/0
+      REDIS_CACHE_TTL: 3600
+      REDIS_WEATHER_TTL: 21600
+
+      # External APIs
+      WEATHER_API_KEY: ${WEATHER_API_KEY:-your_weather_api_key_here}
+      WEATHER_API_URL: https://api.openweathermap.org/data/2.5
+
+      # ML Models
+      MODEL_RETRAIN_THRESHOLD: 0.85
+      MODEL_CACHE_TTL: 1800
+      MODEL_VERSION: v1.0
+      ENABLE_CONTINUOUS_LEARNING: true
+
+      # Performance
+      MAX_CONCURRENT_REQUESTS: 100
+      API_TIMEOUT: 30
+      CACHE_DEFAULT_TTL: 1800
+
+      # Logging
+      LOG_LEVEL: INFO
+      LOG_FORMAT: json
+
+      # Security
+      SECRET_KEY: ${SECRET_KEY:-your-super-secret-key-change-in-production}
+      API_VERSION: v1
+
+      # Development
+      DEBUG: ${DEBUG:-true}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ship-network
+    volumes:
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
+  # Database Initialization (runs once)
+  db-init:
+    build: .
+    container_name: ship-planning-db-init
+    environment:
+      DATABASE_URL: postgresql://ship_user:ship_password@postgres:5432/ship_planning
+      WEATHER_API_KEY: ${WEATHER_API_KEY:-your_weather_api_key_here}
+      SECRET_KEY: ${SECRET_KEY:-your-super-secret-key-change-in-production}
+      DEBUG: true
+      ENVIRONMENT: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ship-network
+    command: python init_db.py
+    restart: "no"
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  ship-network:
+    driver: bridge
