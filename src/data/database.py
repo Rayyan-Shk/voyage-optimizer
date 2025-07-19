@@ -1,13 +1,12 @@
-from sqlalchemy import create_engine, MetaData, text
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 import asyncio
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
-from src.core.config import settings
+from sqlalchemy import MetaData, create_engine, text
+from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.pool import StaticPool
 
+from src.core.config import settings
 
 # Database engine with optimized configuration
 engine = create_engine(
@@ -17,16 +16,11 @@ engine = create_engine(
     pool_pre_ping=True,
     pool_recycle=3600,
     echo=settings.debug,
-    future=True
+    future=True,
 )
 
 # Session factory
-SessionLocal = sessionmaker(
-    autocommit=False,
-    autoflush=False,
-    bind=engine,
-    future=True
-)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, future=True)
 
 # Base class for all models
 Base = declarative_base()
@@ -67,11 +61,11 @@ class DatabaseManager:
     """
     Database connection manager with health checks and reconnection logic.
     """
-    
+
     def __init__(self):
         self.engine = engine
         self.session_factory = SessionLocal
-    
+
     async def health_check(self) -> bool:
         """Check database connectivity."""
         try:
@@ -82,15 +76,15 @@ class DatabaseManager:
         except Exception as e:
             print(f"Database health check failed: {e}")  # Debug output
             return False
-    
+
     async def initialize_database(self):
         """Initialize database tables."""
         Base.metadata.create_all(bind=self.engine)
-    
+
     async def close_connections(self):
         """Close all database connections."""
         self.engine.dispose()
 
 
 # Global database manager instance
-db_manager = DatabaseManager() 
+db_manager = DatabaseManager()
