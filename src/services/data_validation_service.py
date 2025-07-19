@@ -200,7 +200,8 @@ class DataValidationService:
                 elif isinstance(value, (int, float)):
                     if np.isnan(value) or np.isinf(value):
                         self.logger.warning(
-                            f"Invalid numeric value for feature {feature_name}, setting to 0"
+                            f"Invalid numeric value for feature {feature_name}, "
+                            "setting to 0"
                         )
                         validated_features[feature_name] = 0.0
                     else:
@@ -210,7 +211,8 @@ class DataValidationService:
                         validated_features[feature_name] = float(value)
                     except (ValueError, TypeError):
                         self.logger.warning(
-                            f"Cannot convert feature {feature_name} to float, setting to 0"
+                            f"Cannot convert feature {feature_name} to float, "
+                            "setting to 0"
                         )
                         validated_features[feature_name] = 0.0
 
