@@ -1,10 +1,8 @@
-import asyncio
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 from sqlalchemy import MetaData, create_engine, text
 from sqlalchemy.orm import declarative_base, sessionmaker
-from sqlalchemy.pool import StaticPool
 
 from src.core.config import settings
 
