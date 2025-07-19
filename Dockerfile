@@ -1,4 +1,4 @@
-# Use Python 3.11 slim image for smaller size and faster startup
+build: add Docker configuration for containerized deployment# Use Python 3.11 slim image for smaller size and faster startup
 FROM python:3.11-slim
 
 # Set environment variables for Python
