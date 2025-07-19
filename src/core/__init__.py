@@ -1,1 +1,1 @@
-# Core business logic and models 
+# Core business logic and models
