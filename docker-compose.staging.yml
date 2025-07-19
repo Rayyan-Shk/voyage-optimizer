@@ -1,0 +1,138 @@
+version: "3.8"
+
+# Staging Environment Override
+# This file extends docker-compose.yml with staging-specific configurations
+
+services:
+  # PostgreSQL Database - Staging Configuration
+  postgres:
+    environment:
+      POSTGRES_DB: ship_planning_staging
+      POSTGRES_USER: ship_user_staging
+      POSTGRES_PASSWORD: ship_password_staging
+    volumes:
+      - postgres_staging_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5433:5432" # Different port to avoid conflicts
+    container_name: ship-planning-db-staging
+
+  # Redis Cache - Staging Configuration
+  redis:
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_staging_data:/data
+    ports:
+      - "6380:6379" # Different port to avoid conflicts
+    container_name: ship-planning-cache-staging
+
+  # FastAPI Application - Staging Configuration
+  app:
+    environment:
+      # Database Configuration
+      DATABASE_URL: postgresql://ship_user_staging:ship_password_staging@postgres:5432/ship_planning_staging
+      DATABASE_POOL_SIZE: 10
+      DATABASE_MAX_OVERFLOW: 20
+
+      # Redis Configuration
+      REDIS_URL: redis://redis:6379/0
+      REDIS_CACHE_TTL: 1800
+      REDIS_WEATHER_TTL: 10800
+
+      # External APIs
+      WEATHER_API_KEY: ${WEATHER_API_KEY}
+      WEATHER_API_URL: https://api.openweathermap.org/data/2.5
+
+      # ML Models
+      MODEL_RETRAIN_THRESHOLD: 0.80
+      MODEL_CACHE_TTL: 900
+      MODEL_VERSION: v1.0-staging
+      ENABLE_CONTINUOUS_LEARNING: true
+
+      # Performance (reduced for staging)
+      MAX_CONCURRENT_REQUESTS: 50
+      API_TIMEOUT: 30
+      CACHE_DEFAULT_TTL: 900
+
+      # Logging
+      LOG_LEVEL: DEBUG
+      LOG_FORMAT: json
+
+      # Security
+      SECRET_KEY: ${SECRET_KEY}
+      API_VERSION: v1
+
+      # Development/Staging
+      DEBUG: true
+      ENVIRONMENT: staging
+    ports:
+      - "8001:8000" # Different port to avoid conflicts
+    container_name: ship-planning-app-staging
+    volumes:
+      - ./logs:/app/logs
+      - ./staging-data:/app/staging-data # Additional staging data volume
+    labels:
+      - "com.ship-planning.environment=staging"
+      - "com.ship-planning.version=${IMAGE_TAG:-latest}"
+
+  # Database Initialization - Staging Configuration
+  db-init:
+    environment:
+      DATABASE_URL: postgresql://ship_user_staging:ship_password_staging@postgres:5432/ship_planning_staging
+      WEATHER_API_KEY: ${WEATHER_API_KEY}
+      SECRET_KEY: ${SECRET_KEY}
+      DEBUG: true
+      ENVIRONMENT: staging
+    container_name: ship-planning-db-init-staging
+
+  # Staging-specific services
+
+  # Monitoring service for staging
+  monitoring:
+    image: prom/prometheus:latest
+    container_name: ship-planning-monitoring-staging
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_staging_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/etc/prometheus/console_libraries"
+      - "--web.console.templates=/etc/prometheus/consoles"
+      - "--storage.tsdb.retention.time=7d"
+      - "--web.enable-lifecycle"
+    networks:
+      - ship-network
+    depends_on:
+      - app
+    restart: unless-stopped
+
+  # Log aggregation for staging
+  logs:
+    image: grafana/loki:latest
+    container_name: ship-planning-logs-staging
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki_staging_data:/loki
+      - ./monitoring/loki-config.yml:/etc/loki/local-config.yaml:ro
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - ship-network
+    restart: unless-stopped
+
+volumes:
+  postgres_staging_data:
+    driver: local
+  redis_staging_data:
+    driver: local
+  prometheus_staging_data:
+    driver: local
+  loki_staging_data:
+    driver: local
+
+networks:
+  ship-network:
+    driver: bridge
