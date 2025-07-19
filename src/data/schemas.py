@@ -6,7 +6,6 @@ from sqlalchemy import (
     CheckConstraint,
     Column,
     DateTime,
-    Float,
     ForeignKey,
     Index,
     Integer,
@@ -246,7 +245,7 @@ class PartitionedTable:
     def create_partition(cls, table_name: str, start_date: str, end_date: str):
         """Create a partition for date range."""
         return f"""
-        CREATE TABLE {table_name}_{start_date}_{end_date} 
+        CREATE TABLE {table_name}_{start_date}_{end_date}
         PARTITION OF {table_name}
         FOR VALUES FROM ('{start_date}') TO ('{end_date}');
         """
