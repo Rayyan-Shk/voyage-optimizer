@@ -80,9 +80,11 @@ async def get_maintenance_alerts(
             ship_id=str(ship_id),
             recommendations_count=len(forecast.recommendations),
             confidence_score=forecast.confidence_score,
-            next_critical_date=forecast.next_critical_date.isoformat()
-            if forecast.next_critical_date
-            else None,
+            next_critical_date=(
+                forecast.next_critical_date.isoformat()
+                if forecast.next_critical_date
+                else None
+            ),
         )
 
         return forecast

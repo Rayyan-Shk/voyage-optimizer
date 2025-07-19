@@ -181,15 +181,15 @@ class FeatureEngineeringService:
         features = {}
 
         for component_category in self.component_categories:
-            features[
-                f"{component_category}_last_maintenance"
-            ] = self._get_component_last_maintenance(
-                maintenance_history, component_category, current_date
+            features[f"{component_category}_last_maintenance"] = (
+                self._get_component_last_maintenance(
+                    maintenance_history, component_category, current_date
+                )
             )
-            features[
-                f"{component_category}_failure_history"
-            ] = self._get_component_failure_history(
-                maintenance_history, component_category
+            features[f"{component_category}_failure_history"] = (
+                self._get_component_failure_history(
+                    maintenance_history, component_category
+                )
             )
 
         return features
