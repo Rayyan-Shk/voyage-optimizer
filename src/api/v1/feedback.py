@@ -11,11 +11,7 @@ from src.api.dependencies import (
     get_current_user,
     get_database_session,
 )
-from src.core.exceptions import ModelError
 from src.core.models import APIResponse, VoyageFeedback
-from src.models.fuel_predictor import fuel_predictor
-from src.models.maintenance_forecaster import maintenance_forecaster
-from src.models.route_optimizer import route_optimizer
 from src.services.cache_service import CacheService
 
 logger = structlog.get_logger()

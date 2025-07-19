@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import List, Optional
+from typing import List
 from uuid import UUID
 
 import structlog
@@ -247,7 +247,8 @@ async def get_maintenance_history(
                 "cost": 5000 + (i * 1000),
                 "predicted_accurately": i % 3 != 0,
                 "prediction_accuracy": 0.8 + (i * 0.02),
-                "description": f"Routine maintenance for {['Engine', 'Propulsion', 'Navigation', 'Electrical'][i % 4]}",
+                "description": f"Routine maintenance for "
+                f"{['Engine', 'Propulsion', 'Navigation', 'Electrical'][i % 4]}",
             }
             history.append(event)
 
@@ -314,8 +315,10 @@ async def get_maintenance_analytics(
                 },
             },
             "recommendations": [
-                "Consider increasing preventive maintenance frequency for Engine components",
-                "Navigation system showing consistent performance - maintain current schedule",
+                "Consider increasing preventive maintenance frequency for "
+                "Engine components",
+                "Navigation system showing consistent performance - "
+                "maintain current schedule",
                 "Electrical systems may benefit from condition-based monitoring",
             ],
         }

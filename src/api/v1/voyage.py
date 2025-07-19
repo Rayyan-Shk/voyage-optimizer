@@ -1,4 +1,4 @@
-import asyncio
+
 from datetime import datetime, timedelta
 from typing import List, Optional
 from uuid import UUID, uuid4
@@ -15,7 +15,7 @@ from src.api.dependencies import (
 from src.core.exceptions import FuelPredictionError, RouteOptimizationError
 from src.core.models import (
     AlternativePlan,
-    APIResponse,
+
     Coordinates,
     Route,
     VoyageHistory,
@@ -57,11 +57,16 @@ async def plan_voyage(
             user_id=current_user["user_id"],
             ship_id=str(request.ship_id),
             origin=f"{request.origin.latitude},{request.origin.longitude}",
-            destination=f"{request.destination.latitude},{request.destination.longitude}",
+            destination=f"{request.destination.latitude},"
+            f"{request.destination.longitude}",
         )
 
         # Check cache first
-        cache_key = f"voyage_plan_{request.ship_id}_{request.origin.latitude}_{request.origin.longitude}_{request.destination.latitude}_{request.destination.longitude}"
+        cache_key = (
+            f"voyage_plan_{request.ship_id}_{request.origin.latitude}_"
+            f"{request.origin.longitude}_{request.destination.latitude}_"
+            f"{request.destination.longitude}"
+        )
         cached_plan = await cache.get_cached_route(
             {
                 "ship_id": str(request.ship_id),
@@ -166,7 +171,8 @@ async def plan_voyage(
         )  # Assume $0.5 per liter
         if maintenance_forecast.recommendations:
             total_estimated_cost += sum(
-                rec.estimated_cost for rec in maintenance_forecast.recommendations
+                rec.estimated_cost
+                for rec in maintenance_forecast.recommendations
             )
 
         # Calculate overall confidence score
