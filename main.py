@@ -311,6 +311,14 @@ app.include_router(maintenance.router, prefix="/api/v1", tags=["Maintenance"])
 
 if __name__ == "__main__":
     # Run the application
+    print("🚢 Starting Ship Planning System...")
+    print("📍 Access the application at:")
+    print("   • API Documentation: http://localhost:8000/docs")
+    print("   • ReDoc: http://localhost:8000/redoc") 
+    print("   • Health Check: http://localhost:8000/health")
+    print("   • Root: http://localhost:8000/")
+    print("=" * 50)
+    
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
