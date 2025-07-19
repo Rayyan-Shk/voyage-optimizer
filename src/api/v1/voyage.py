@@ -173,7 +173,8 @@ async def plan_voyage(
             )
 
         # Calculate overall confidence score
-        # Extract confidence from fuel prediction (use inverse of relative error as confidence)
+        # Extract confidence from fuel prediction 
+        # (use inverse of relative error as confidence)
         fuel_confidence = 1.0 - (
             fuel_prediction.confidence_interval["std_error"]
             / fuel_prediction.estimated_consumption
