@@ -231,12 +231,12 @@ class MaintenanceForecaster:
 
                 # Add component-specific features
                 for component_category in self.component_categories:
-                    features[f"{component_category}_last_maintenance"] = (
-                        np.random.randint(30, 365)
-                    )
-                    features[f"{component_category}_failure_history"] = (
-                        np.random.uniform(0, 1)
-                    )
+                    features[
+                        f"{component_category}_last_maintenance"
+                    ] = np.random.randint(30, 365)
+                    features[
+                        f"{component_category}_failure_history"
+                    ] = np.random.uniform(0, 1)
 
                 features_list.append(features)
 
