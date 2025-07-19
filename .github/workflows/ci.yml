@@ -22,7 +22,7 @@ jobs:
       - name: 📥 Checkout Code
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_TOKEN }}
           fetch-depth: 0
 
       - name: 🐍 Set up Python
@@ -57,9 +57,9 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add -A
-          git commit -m "style: auto-format code with Black and isort [skip ci]"
-          git push
+          git add .
+          git commit -m "style: auto-format code with Black and isort [skip ci]" || echo "No changes to commit"
+          git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/Rayyan-Shk/voyage-optimizer.git HEAD:main
 
   lint:
     name: 🧹 Code Quality
